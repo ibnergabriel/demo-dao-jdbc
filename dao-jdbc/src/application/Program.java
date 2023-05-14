@@ -1,5 +1,7 @@
 package application;
 
+import model.dao.DaoFactory;
+import model.dao.SellerDao;
 import model.entities.Department;
 import model.entities.Seller;
 
@@ -18,6 +20,9 @@ public class Program {
                         new Date(),
                         2100.00,
                         new Department(99,"GPU"));
+
+        // Injeção de depedências
+        SellerDao sellerDao = DaoFactory.createSellerDao();
 
         System.out.println(seller);
     }
