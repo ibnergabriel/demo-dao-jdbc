@@ -38,8 +38,10 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public Seller findById(Integer id) {
+
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
+
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT seller.*,department.Name as DepName " +
@@ -52,17 +54,9 @@ public class SellerDaoJDBC implements SellerDao {
 
             if (resultSet.next()) {
 
-                Department department = new Department();
-                department.setId(resultSet.getInt("DepartmentId"));
-                department.setName(resultSet.getString("DepName"));
+                Department department = instantieteDepartment(resultSet);
 
-                Seller obj = new Seller();
-                obj.setId(resultSet.getInt("Id"));
-                obj.setName(resultSet.getString("Name"));
-                obj.setEmail(resultSet.getString("Email"));
-                obj.setBaseSalary(resultSet.getDouble("BaseSalary"));
-                obj.setBirthDate(resultSet.getDate("BirthDate"));
-                obj.setDepartment(department);
+                Seller obj = instantieteSeller(resultSet, department);
                 return obj;
             }
             return null;
@@ -76,8 +70,28 @@ public class SellerDaoJDBC implements SellerDao {
         }
     }
 
+    private Seller instantieteSeller(ResultSet resultSet, Department department) throws SQLException {
+        Seller obj = new Seller();
+        obj.setId(resultSet.getInt("Id"));
+        obj.setName(resultSet.getString("Name"));
+        obj.setEmail(resultSet.getString("Email"));
+        obj.setBaseSalary(resultSet.getDouble("BaseSalary"));
+        obj.setBirthDate(resultSet.getDate("BirthDate"));
+        obj.setDepartment(department);
+        return obj;
+    }
+
+    private Department instantieteDepartment(ResultSet resultSet) throws SQLException {
+        Department department = new Department();
+        department.setId(resultSet.getInt("DepartmentId"));
+        department.setName(resultSet.getString("DepName"));
+        return department;
+    }
+
     @Override
     public List<Seller> findAll() {
         return null;
     }
+
+
 }
