@@ -10,7 +10,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SellerDaoJDBC implements SellerDao {
 
@@ -38,7 +41,6 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public Seller findById(Integer id) {
-
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
@@ -46,7 +48,7 @@ public class SellerDaoJDBC implements SellerDao {
             preparedStatement = connection.prepareStatement(
                     "SELECT seller.*,department.Name as DepName " +
                             "FROM seller INNER JOIN  department " +
-                            "ON seller.DepartmentID = department.Id " +
+                            "ON seller.DepartmentId = department.Id " +
                             "WHERE seller.Id = ?");
 
             preparedStatement.setInt(1, id);
@@ -93,5 +95,49 @@ public class SellerDaoJDBC implements SellerDao {
         return null;
     }
 
+    @Override
+    public List<Seller> findByDepartment(Department department) {
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
 
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT seller.*,department.Name as DepName "
+                            + "FROM seller INNER JOIN  department "
+                            + "ON seller.DepartmentId = department.Id "
+                            + "WHERE DepartmentId = ? "
+                            + "ORDER BY Name");
+
+            preparedStatement.setInt(1, department.getId());
+            resultSet = preparedStatement.executeQuery();
+
+            List<Seller> list = new ArrayList<>();
+            Map<Integer,Department> map = new HashMap<>();
+
+            while(resultSet.next()) {
+
+                /*
+                Iniciado o while, haverá um teste para verificar se o departamento já existe através do map, onde
+                o map.get verificará se há igualdade do "DepartmentId"
+                */
+                Department departmentMap = map.get(resultSet.getInt("DepartmentId"));
+
+                if(departmentMap == null) {
+                    departmentMap = instantieteDepartment(resultSet);
+                    map.put(resultSet.getInt("DepartmentId"), departmentMap);
+                }
+
+                Seller obj = instantieteSeller(resultSet, departmentMap);
+                list.add(obj);
+            }
+            return list;
+        }
+        catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        finally {
+            DB.closeStatement(preparedStatement);
+            DB.closeResultSet(resultSet);
+        }
+    }
 }
